@@ -30,13 +30,24 @@
   <script language="javascript">
       let angle = 0;
       let pointer;
+      let hasHeading = false;
+
+      var myArray = [0, 15, 13, 23, -11, -21, -14, -7, 6, 8]; 
+      function getFakeHeading() {
+        return myArray[(Math.random() * myArray.length) | 0];
+      }
 
       if (navigator.geolocation) {
         const successCallback = (position) => {
           console.log('position: ', position);
           const heading = position.coords.heading;
+          if (heading) {
+            angle = heading;
+            hasHeading = true;
+          } else {
+            angle = getFakeHeading();
+          }
           document.querySelector('.panel').innerHTML = "Heading: " + heading;
-          angle = heading;
         };
 
         const errorCallback = (error) => {
@@ -54,10 +65,12 @@
           // document.addEventListener('click', this.OnDocumentMouseDown);
         },
         tick: function() {
-          // console.log('tick');
-          // angle += 2;
-          // pointer.setAttribute('rotation', {x: 90, y: 180, z: 0});
-          pointer.setAttribute('rotation', {z: angle });
+          
+          if (hasHeading) {
+            pointer.setAttribute('rotation', {z: angle });
+          } else {
+            pointer.setAttribute('rotation', {z: getFakeHeading() });
+          }
         }
       });
     </script>
