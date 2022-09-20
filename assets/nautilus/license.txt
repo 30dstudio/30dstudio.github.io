@@ -1,0 +1,11 @@
+Model Information:
+* title:	Animated nautilus gears
+* source:	https://sketchfab.com/3d-models/animated-nautilus-gears-b0248995a1304dfe8a656794ebcd797d
+* author:	C. Yamahata (https://sketchfab.com/cyamahat)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Animated nautilus gears" (https://sketchfab.com/3d-models/animated-nautilus-gears-b0248995a1304dfe8a656794ebcd797d) by C. Yamahata (https://sketchfab.com/cyamahat) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
