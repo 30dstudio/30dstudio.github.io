@@ -23,7 +23,6 @@
 
       if (navigator.geolocation) {
         const successCallback = (position) => {
-          console.log('position: ', position);
           const heading = position.coords.heading;
           if (heading) {
             angle = heading;
@@ -41,7 +40,6 @@
       }
 
       function rotate() {
-        console.log("rotate angle: ", angle);
         angle = getFakeHeading();
 
         window.el.setAttribute('rotation', {z: angle});
