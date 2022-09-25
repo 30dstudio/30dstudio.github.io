@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="js/compass.js"></script>
+  <title>30D Studio</title>
+</head>
+<body>
+  <script>
+    function startNavigation () {
+      const agent = getMobileOperatingSystem();
+
+      Compass.noSupport(function () {
+        document.getElementById("status").innerHTML = "device not supported!";
+        document.querySelector('.compass').style.display = "none";
+      });
+
+      if (getMobileOperatingSystem() === "Android") {
+        Compass.needGPS(function () {
+          document.querySelector('.go-outside-message').style.display = "block";          // Step 1: we need GPS signal
+        }).needMove(function () {
+          document.querySelector('.go-outside-message').style.display = "none"
+          document.querySelector('.move-and-hold-ahead-message').style.display = "block"; // Step 2: user must go forward
+        }).init(function () {
+          document.querySelector('.move-and-hold-ahead-message').style.display = "none"; // GPS hack is enabled
+        });
+      }
+
+      Compass.watch(function (heading) {
+        document.querySelector('.degrees').text(heading);
+        document.querySelector('.compass').css('transform', 'rotate(' + (-heading) + 'deg)');
+      });
+    }
+
+    function getMobileOperatingSystem() {
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+        // Windows Phone must come first because its UA also contains "Android"
+        if (/android/i.test(userAgent)) {
+            return "Android";
+        }
+
+        // iOS detection from: http://stackoverflow.com/a/9039885/177710
+        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            return "iOS";
+        }
+
+        return "unknown";
+    }
+
+    window.onload = startNavigation;
+    </script> 
+    <h1>Testing heading!</h1>
+    <div id="status"></div>
+    <h2 class="compass"></h2>
+    <h3 class="degree"></h3>
+    <div class="go-outside-message"></div>
+    <div class="move-and-hold-ahead-message"></div>
+</body>
+</html>
