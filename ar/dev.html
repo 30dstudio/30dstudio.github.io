@@ -8,6 +8,7 @@
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+  <script src="js/fulltilt.min.js"></script>
   <title>30D Studio</title>
   <style>
     .panel {
@@ -29,76 +30,40 @@
   <script>
     function startNavigation () {
       document.getElementById("device-orientation").innerHTML = "Status Device Orientation";
-      // Get event data  
-      function deviceOrientationListener(event) {
-        document.getElementById("status").innerHTML = "listener called!";
+      
+      // Obtain a new *world-oriented* Full Tilt JS DeviceOrientation Promise
+      var promise = FULLTILT.getDeviceOrientation({ 'type': 'world' });
 
-        var compassdir;
+      // Wait for Promise result
+      promise.then(function(deviceOrientation) { // Device Orientation Events are supported
+        document.getElementById("status").innerHTML = "Promise fullfilled!";
+        // Register a callback to run every time a new 
+        // deviceorientation event is fired by the browser.
+        deviceOrientation.listen(function() {
+          document.getElementById("status").innerHTML = "listener called!";
+          // Get the current *screen-adjusted* device orientation angles
+          var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
 
-        if(event.webkitCompassHeading) {
-            // Apple works only with this, alpha doesn't work
-            compassdir = event.webkitCompassHeading;  
-        }
-        else compassdir = event.alpha;
+          // Calculate the current compass heading that the user is 'looking at' (in degrees)
+          var compassHeading = 360 - currentOrientation.alpha;
 
-        document.getElementById("device-orientation").innerHTML = compassdir;
-        // document.getElementById("device-orientation").innerHTML += ": " + webkitCompassHeading;
+          // Do something with `compassHeading` here...
+          document.getElementById("heading").innerHTML = "Heading: " + compassHeading;
 
-        // var alpha = event.alpha; //z axis rotation \[0,360)  
-        // var beta = event.beta; //x axis rotation \[-180, 180\]  
-        // var gamma = event.gamma; //y axis rotation \[-90, 90\]
-        
-        // document.getElementById("device-orientation").innerHTML += "has device orientation: alpha: " + alpha + ", beta: " + beta + ", gamma: " + gamma;
-  
-        //Check if absolute values have been sent  
-        // if (typeof event.webkitCompassHeading !== "undefined") {  
-        //   alpha = event.webkitCompassHeading; //iOS non-standard  
-        //   var heading = alpha  
-        //   document.getElementById("heading").innerHTML = heading;
-        //   console.log("Heading: ", heading);  
-        // }  
-        // else {  
-        //   alert("Your device is reporting relative alpha values, so this compass won't point north :(");  
-        //   var heading = 360 - alpha; //heading \[0, 360)  
-        //   document.getElementById("heading").innerHTML = heading;
-        //   console.log("Heading: ", heading);  
-        // }  
-          
-        // // Change backgroud colour based on heading  
-        // // Green for North and South, black otherwise  
-        // if (heading > 359 || heading < 1) { //Allow +- 1 degree  
-        //   document.body.style.backgroundColor = "green";  
-        //   document.getElementById("heading").innerHTML = "N"; // North 
-        //   console.log("Heading: N", heading); 
-        // }  
-        // else if (heading > 179 && heading < 181){ //Allow +- 1 degree  
-        //   document.body.style.backgroundColor = "green";  
-        //   document.getElementById("heading").innerHTML = "S"; // South
-        //   console.log("Heading: S", heading); 
-        // }   
-        // else { // Otherwise, use near black  
-        //   document.body.style.backgroundColor = "#161616";  
-        // }  
-      }  
-        
-      // Check if device can provide absolute orientation data  
-      if (window.DeviceOrientationAbsoluteEvent) {
-        document.getElementById("device-orientation").innerHTML += ": has absolute device orientation";
-        window.addEventListener("DeviceOrientationAbsoluteEvent", deviceOrientationListener);  
-      } // If not, check if the device sends any orientation data  
-      else if(window.DeviceOrientationEvent){  
-        document.getElementById("device-orientation").innerHTML += ": has simpler device orientation";
-        window.addEventListener("deviceorientation", deviceOrientationListener);  
-      } // Send an alert if the device isn't compatible  
-      else {  
-        document.getElementById("device-orientation").innerHTML += ": DOES NOT HAVE device orientation";
-        alert("Sorry, try again on a compatible mobile device!");  
-      }  
+        });
+
+      }).catch(function(errorMessage) { // Device Orientation Events are not supported
+        console.log(errorMessage);
+        document.getElementById("status").innerHTML = "Promise rejected! " + errorMessage;
+
+        // Implement some fallback controls here...
+
+      }); 
     }
 
     window.onload = startNavigation;
     </script> 
-    <h1>Testing heading!!!</h1>
+    <h1>Testing heading!</h1>
     <h2 id="heading" style="text-align:center"></h2>
     <h3 id="device-orientation"></h3>
     <h4 id="status"></h4>
