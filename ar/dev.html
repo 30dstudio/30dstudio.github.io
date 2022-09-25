@@ -52,7 +52,7 @@
             var compassHeading = 360 - currentOrientation.alpha;
   
             // Do something with `compassHeading` here...
-            document.getElementById("heading").innerHTML = "Heading: " + compassHeading;
+            document.getElementById("heading").innerHTML = "Heading: " + Number.parseFloat(compassHeading).toFixed(0);
   
           });
   
@@ -65,6 +65,19 @@
         }); 
       } else if (agent === "iOS") {
         document.getElementById("device").innerHTML = "You are using an iOS device.";
+        if (window.DeviceOrientationEvent) {
+          // Listen for the deviceorientation event and handle the raw data
+          window.addEventListener('deviceorientation', function(eventData) {
+            var compassdir;
+
+            if(event.webkitCompassHeading) {
+              // Apple works only with this, alpha doesn't work
+              compassdir = event.webkitCompassHeading;
+              document.getElementById("heading").innerHTML = "Heading: " + compassdir;
+            }
+  
+          });
+        }
       } else {
         document.getElementById("device").innerHTML = "You are using a not supported device.";
       }
