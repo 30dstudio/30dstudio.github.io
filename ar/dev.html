@@ -29,43 +29,68 @@
 <body>
   <script>
     function startNavigation () {
-      document.getElementById("device-orientation").innerHTML = "Status Device Orientation";
-      
-      // Obtain a new *world-oriented* Full Tilt JS DeviceOrientation Promise
-      var promise = FULLTILT.getDeviceOrientation({ 'type': 'world' });
+      const agent = getMobileOperatingSystem();
 
-      // Wait for Promise result
-      promise.then(function(deviceOrientation) { // Device Orientation Events are supported
-        document.getElementById("status").innerHTML = "Promise fullfilled!";
-        // Register a callback to run every time a new 
-        // deviceorientation event is fired by the browser.
-        deviceOrientation.listen(function() {
-          document.getElementById("status").innerHTML = "listener called!";
-          // Get the current *screen-adjusted* device orientation angles
-          var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
+      if (agent === "Android") {
+        document.getElementById("device-orientation").innerHTML = "Status Device Orientation";
+        document.getElementById("device").innerHTML = "You are using an Android device.";
 
-          // Calculate the current compass heading that the user is 'looking at' (in degrees)
-          var compassHeading = 360 - currentOrientation.alpha;
+        // Obtain a new *world-oriented* Full Tilt JS DeviceOrientation Promise
+        var promise = FULLTILT.getDeviceOrientation({ 'type': 'world' });
+  
+        // Wait for Promise result
+        promise.then(function(deviceOrientation) { // Device Orientation Events are supported
+          document.getElementById("status").innerHTML = "Promise fullfilled!";
+          // Register a callback to run every time a new 
+          // deviceorientation event is fired by the browser.
+          deviceOrientation.listen(function() {
+            document.getElementById("status").innerHTML = "listener called!";
+            // Get the current *screen-adjusted* device orientation angles
+            var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
+  
+            // Calculate the current compass heading that the user is 'looking at' (in degrees)
+            var compassHeading = 360 - currentOrientation.alpha;
+  
+            // Do something with `compassHeading` here...
+            document.getElementById("heading").innerHTML = "Heading: " + compassHeading;
+  
+          });
+  
+        }).catch(function(errorMessage) { // Device Orientation Events are not supported
+          console.log(errorMessage);
+          document.getElementById("status").innerHTML = "Promise rejected! " + errorMessage;
+          
+          // Implement some fallback controls here...
+  
+        }); 
+      } else if (agent === "iOS") {
+        document.getElementById("device").innerHTML = "You are using an iOS device.";
+      } else {
+        document.getElementById("device").innerHTML = "You are using a not supported device.";
+      }
+    }
 
-          // Do something with `compassHeading` here...
-          document.getElementById("heading").innerHTML = "Heading: " + compassHeading;
+    function getMobileOperatingSystem() {
+        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
 
-        });
+        // Windows Phone must come first because its UA also contains "Android"
+        if (/android/i.test(userAgent)) {
+            return "Android";
+        }
 
-      }).catch(function(errorMessage) { // Device Orientation Events are not supported
-        console.log(errorMessage);
-        document.getElementById("status").innerHTML = "Promise rejected! " + errorMessage;
+        // iOS detection from: http://stackoverflow.com/a/9039885/177710
+        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            return "iOS";
+        }
 
-        // Implement some fallback controls here...
-
-      }); 
+        return "unknown";
     }
 
     window.onload = startNavigation;
     </script> 
     <h1>Testing heading!</h1>
     <h2 id="heading" style="text-align:center"></h2>
-    <h3 id="device-orientation"></h3>
+    <h3 id="device"></h3>
     <h4 id="status"></h4>
 </body>
 </html>
