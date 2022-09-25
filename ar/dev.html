@@ -26,68 +26,56 @@
   </style>
 </head>
 <body>
-  <div class="panel"></div>
-  <script language="javascript">
-      let angle = 0;
-      let pointer;
-      let hasHeading = false;
+  <div class="panel" id="heading"></div>
+  <script>  
+    // Get event data  
+    function deviceOrientationListener(event) {  
+      var alpha    = event.alpha; //z axis rotation \[0,360)  
+      var beta     = event.beta; //x axis rotation \[-180, 180\]  
+      var gamma    = event.gamma; //y axis rotation \[-90, 90\]
 
-      var myArray = [0, 5, 3, 2, -3, -6, -4, -1, 1, -2]; 
-      function getFakeHeading() {
-        return myArray[(Math.random() * myArray.length) | 0];
-      }
-
-      if (navigator.geolocation) {
-        const successCallback = (position) => {
-          console.log('position: ', position);
-          const heading = position.coords.heading;
-          if (heading) {
-            angle = heading;
-            hasHeading = true;
-          } else {
-            angle = getFakeHeading();
-          }
-          document.querySelector('.panel').innerHTML = "Heading: " + heading;
-        };
-
-        const errorCallback = (error) => {
-          console.log(error);
-        };
-        navigator.geolocation.watchPosition(successCallback, errorCallback);
-      }
-
-      function rotate() {
-        console.log("rotate angle: ", angle);
-        angle = getFakeHeading();
-
-        // window.el.setAttribute('rotation', {z: angle});
-        // window.requestAnimationFrame(rotate);
-      }
-      
-      AFRAME.registerComponent('compass-pointer',{
-        scene: {},
-        init: function() {
-          console.log(this.el.sceneEl);
-          this.scene = this.el.sceneEl;
-          pointer = document.querySelector('#compass');
-          // document.addEventListener('click', this.OnDocumentMouseDown);
-          window.el = pointer;
-          rotate(pointer);
-        },
+      //Check if absolute values have been sent  
+      if (typeof event.webkitCompassHeading !== "undefined") {  
+        alpha = event.webkitCompassHeading; //iOS non-standard  
+        var heading = alpha  
+        document.getElementById("heading").innerHTML = heading;
+        console.log("Heading: ", heading);  
+      }  
+      else {  
+        alert("Your device is reporting relative alpha values, so this compass won't point north :(");  
+        var heading = 360 - alpha; //heading \[0, 360)  
+        document.getElementById("heading").innerHTML = heading;
+        console.log("Heading: ", heading);  
+      }  
         
-        tick: function() {
-          
-          // if (hasHeading) {
-          //   pointer.setAttribute('rotation', {z: angle });
-          // } else {
-          //   pointer.setAttribute('rotation', {z: getFakeHeading() });
-          // }
-        },
-        // OnDocumentMouseDown: function() {
-        //   pointer.setAttribute('rotation', { z: 20 });
-        // }
-      });
-    </script>
+      // Change backgroud colour based on heading  
+      // Green for North and South, black otherwise  
+      if (heading > 359 || heading < 1) { //Allow +- 1 degree  
+        document.body.style.backgroundColor = "green";  
+        document.getElementById("heading").innerHTML = "N"; // North 
+        console.log("Heading: N", heading); 
+      }  
+      else if (heading > 179 && heading < 181){ //Allow +- 1 degree  
+        document.body.style.backgroundColor = "green";  
+        document.getElementById("heading").innerHTML = "S"; // South
+        console.log("Heading: S", heading); 
+      }   
+      else { // Otherwise, use near black  
+        document.body.style.backgroundColor = "#161616";  
+      }  
+    }  
+      
+    // Check if device can provide absolute orientation data  
+    if (window.DeviceOrientationAbsoluteEvent) {  
+      window.addEventListener("DeviceOrientationAbsoluteEvent", deviceOrientationListener);  
+    } // If not, check if the device sends any orientation data  
+    else if(window.DeviceOrientationEvent){  
+      window.addEventListener("deviceorientation", deviceOrientationListener);  
+    } // Send an alert if the device isn't compatible  
+    else {  
+      alert("Sorry, try again on a compatible mobile device!");  
+    }  
+    </script> 
   <a-scene mindar-image="imageTargetSrc: http://127.0.0.1:5500//assets/trinta.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets>
 	      <img id="card" src="http://127.0.0.1:5500//assets/logo-30d.png" crossorigin="anonymous"/>
@@ -99,12 +87,12 @@
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
       <a-entity mindar-image-target="targetIndex: 0">
-        <!-- <a-cylinder height="0.4" radius="0.1" position="0 0 0.7" material="opacity: 0.0; transparent: true" compass-pointer id="compass">
+        <a-cylinder height="0.4" radius="0.1" position="0 0 0.7" material="opacity: 0.0; transparent: true" compass-pointer id="compass">
           <a-cone color="red" position="0 0.1 0" radius-bottom="0.02" radius-top="0.001" height="0.2" pointer-component></a-cone>
           <a-cone color="white" position="0 -0.1 0" rotation="0 0 180" radius-bottom="0.02" radius-top="0.001" height="0.2"></a-cone>
-        </a-cylinder> -->
-        <a-gltf-model rotation="0 0 0" position="0 0 0.6" scale="0.7 0.7 0.7" src="#compassModel" animation-mixer></a-gltf-model>
-        <a-gltf-model rotation="0 0 0" position="0 0 0.7" scale="0.7 0.7 0.7" src="#pointerModel" compass-pointer id="compass"></a-gltf-model>
+        </a-cylinder>
+        <!-- <a-gltf-model rotation="0 0 0" position="0 0 0.6" scale="0.7 0.7 0.7" src="#compassModel" animation-mixer></a-gltf-model>
+        <a-gltf-model rotation="0 0 0" position="0 0 0.7" scale="0.7 0.7 0.7" src="#pointerModel" compass-pointer id="compass"></a-gltf-model> -->
         <!-- <a-gltf-model rotation="90 180 0" position="0 0.2 0.6" scale="0.04 0.04 0.04" src="#compassPointer" compass-pointer id="compass"></a-gltf-model> -->
       </a-entity>
     </a-scene>
