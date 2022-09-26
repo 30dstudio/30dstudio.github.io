@@ -8,102 +8,105 @@
   <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image-aframe.prod.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-  <script src="js/fulltilt.min.js"></script>
   <title>30D Studio</title>
-  <style>
-    .panel {
-      position: fixed;
-      bottom: 0;
-      height: 30px;
-      z-index: 9999;
-      background: white;
-      color: black;
-      font-size: 24px;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-  </style>
 </head>
 <body>
-  <script>
-    function startNavigation () {
-      const agent = getMobileOperatingSystem();
-
-      if (agent === "Android") {
-        document.getElementById("device-orientation").innerHTML = "Status Device Orientation";
-        document.getElementById("device").innerHTML = "You are using an Android device.";
-
-        // Obtain a new *world-oriented* Full Tilt JS DeviceOrientation Promise
-        var promise = FULLTILT.getDeviceOrientation({ 'type': 'world' });
-  
-        // Wait for Promise result
-        promise.then(function(deviceOrientation) { // Device Orientation Events are supported
-          document.getElementById("status").innerHTML = "Promise fullfilled!";
-          // Register a callback to run every time a new 
-          // deviceorientation event is fired by the browser.
-          deviceOrientation.listen(function() {
-            document.getElementById("status").innerHTML = "listener called!";
-            // Get the current *screen-adjusted* device orientation angles
-            var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
-  
-            // Calculate the current compass heading that the user is 'looking at' (in degrees)
-            var compassHeading = 360 - currentOrientation.alpha;
-  
-            // Do something with `compassHeading` here...
-            document.getElementById("heading").innerHTML = "Heading: " + Number.parseFloat(compassHeading).toFixed(0);
-  
-          });
-  
-        }).catch(function(errorMessage) { // Device Orientation Events are not supported
-          console.log(errorMessage);
-          document.getElementById("status").innerHTML = "Promise rejected! " + errorMessage;
-          
-          // Implement some fallback controls here...
-  
-        }); 
-      } else if (agent === "iOS") {
-        document.getElementById("device").innerHTML = "You are using an iOS device.";
-        if (window.DeviceOrientationEvent) {
-          // Listen for the deviceorientation event and handle the raw data
-          window.addEventListener('deviceorientation', function(eventData) {
-            var compassdir;
-
-            if(event.webkitCompassHeading) {
-              // Apple works only with this, alpha doesn't work
-              compassdir = event.webkitCompassHeading;
-              document.getElementById("heading").innerHTML = "Heading: " + compassdir;
-            }
-  
-          });
+  <script language="javascript">
+      
+      AFRAME.registerComponent('compass-pointer',{
+        scene: {},
+        init: function() {
+          console.log(this.el.sceneEl);
+          this.scene = this.el.sceneEl;
+          pointer = document.querySelector('#pointer');
+          // window.el = pointer;
+          const angle = startNavigation();
+          pointer.setAttribute("rotate", { z: angle });
         }
-      } else {
-        document.getElementById("device").innerHTML = "You are using a not supported device.";
+      });
+
+      function getMobileOperatingSystem() {
+          var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+          if (/android/i.test(userAgent)) {
+              return "Android";
+          }
+
+          // iOS detection from: http://stackoverflow.com/a/9039885/177710
+          if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+              return "iOS";
+          }
+
+          return "unknown";
       }
-    }
 
-    function getMobileOperatingSystem() {
-        var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      function startNavigation (el) {
+        const agent = getMobileOperatingSystem();
 
-        // Windows Phone must come first because its UA also contains "Android"
-        if (/android/i.test(userAgent)) {
-            return "Android";
+        if (agent === "Android") {
+          // Obtain a new *world-oriented* Full Tilt JS DeviceOrientation Promise
+          var promise = FULLTILT.getDeviceOrientation({ 'type': 'world' });
+    
+          // Wait for Promise result
+          promise.then(function(deviceOrientation) { // Device Orientation Events are supported
+            // Register a callback to run every time a new 
+            // deviceorientation event is fired by the browser.
+            deviceOrientation.listen(function() {
+              // Get the current *screen-adjusted* device orientation angles
+              var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
+    
+              // Calculate the current compass heading that the user is 'looking at' (in degrees)
+              var compassHeading = Number.parseFloat(360 - currentOrientation.alpha).toFixed(0);
+              
+              return compassHeading;
+              // Do something with `compassHeading` here...
+              // document.getElementById("heading").innerHTML = "Heading: " + Number.parseFloat(compassHeading).toFixed(0);
+    
+            });
+    
+          }).catch(function(errorMessage) { // Device Orientation Events are not supported
+            console.log(errorMessage);
+            document.getElementById("status").innerHTML = "Promise rejected! " + errorMessage;
+            
+            // Implement some fallback controls here...
+            return 0;
+    
+          }); 
+        } else if (agent === "iOS") {
+          if (window.DeviceOrientationEvent) {
+            // Listen for the deviceorientation event and handle the raw data
+            window.addEventListener('deviceorientation', function(eventData) {
+              var compassdir;
+
+              if(event.webkitCompassHeading) {
+                // Apple works only with this, alpha doesn't work
+                compassdir = event?.webkitCompassHeading || 0;
+                
+                return Number.parseFloat(compassdir).toFixed(0);
+              }
+    
+            });
+          } else return 0;
+        } else {
+          return 0;
         }
+      }
 
-        // iOS detection from: http://stackoverflow.com/a/9039885/177710
-        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-            return "iOS";
-        }
+      // window.onload = startNavigation;
+    </script>
+  <a-scene mindar-image="imageTargetSrc: http://127.0.0.1:5500/assets/trinta.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      <a-assets>
+	      <img id="card" src="http://127.0.0.1:5500/assets/logo-30d.png" crossorigin="anonymous"/>
+	      <a-asset-item id="compassModel" src="http://127.0.0.1:5500/assets/compass30d.gltf"></a-asset-item>
+	      <a-asset-item id="pointerModel" src="http://127.0.0.1:5500/assets/pointer30d.gltf"></a-asset-item>
+      </a-assets>
 
-        return "unknown";
-    }
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    window.onload = startNavigation;
-    </script> 
-    <h1>Testing heading!</h1>
-    <h2 id="heading" style="text-align:center"></h2>
-    <h3 id="device"></h3>
-    <h4 id="status"></h4>
+      <a-entity mindar-image-target="targetIndex: 0">
+        <a-gltf-model rotation="90 0 0" position="0 -0.5 0.4" scale="0.4 0.4 0.4" src="#compassModel" animation-mixer></a-gltf-model>
+        <a-gltf-model rotation="90 0 0" position="0 -0.5 0.5" scale="0.4 0.4 0.4" src="#pointerModel" compass-pointer id="pointer"></a-gltf-model>
+      </a-entity>
+    </a-scene>
 </body>
 </html>

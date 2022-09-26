@@ -4,34 +4,78 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="js/compass.js"></script>
   <title>30D Studio</title>
+  <style>
+    .panel {
+      position: fixed;
+      bottom: 0;
+      height: 30px;
+      z-index: 9999;
+      background: white;
+      color: black;
+      font-size: 24px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
 </head>
 <body>
   <script>
     function startNavigation () {
       const agent = getMobileOperatingSystem();
 
-      Compass.noSupport(function () {
-        document.getElementById("status").innerHTML = "device not supported!";
-        document.querySelector('.compass').style.display = "none";
-      });
+      if (agent === "Android") {
+        document.getElementById("device-orientation").innerHTML = "Status Device Orientation";
+        document.getElementById("device").innerHTML = "You are using an Android device.";
 
-      if (getMobileOperatingSystem() === "Android") {
-        Compass.needGPS(function () {
-          document.querySelector('.go-outside-message').style.display = "block";          // Step 1: we need GPS signal
-        }).needMove(function () {
-          document.querySelector('.go-outside-message').style.display = "none"
-          document.querySelector('.move-and-hold-ahead-message').style.display = "block"; // Step 2: user must go forward
-        }).init(function () {
-          document.querySelector('.move-and-hold-ahead-message').style.display = "none"; // GPS hack is enabled
-        });
+        // Obtain a new *world-oriented* Full Tilt JS DeviceOrientation Promise
+        var promise = FULLTILT.getDeviceOrientation({ 'type': 'world' });
+  
+        // Wait for Promise result
+        promise.then(function(deviceOrientation) { // Device Orientation Events are supported
+          document.getElementById("status").innerHTML = "Promise fullfilled!";
+          // Register a callback to run every time a new 
+          // deviceorientation event is fired by the browser.
+          deviceOrientation.listen(function() {
+            document.getElementById("status").innerHTML = "listener called!";
+            // Get the current *screen-adjusted* device orientation angles
+            var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
+  
+            // Calculate the current compass heading that the user is 'looking at' (in degrees)
+            var compassHeading = 360 - currentOrientation.alpha;
+  
+            // Do something with `compassHeading` here...
+            document.getElementById("heading").innerHTML = "Heading: " + Number.parseFloat(compassHeading).toFixed(0);
+  
+          });
+  
+        }).catch(function(errorMessage) { // Device Orientation Events are not supported
+          console.log(errorMessage);
+          document.getElementById("status").innerHTML = "Promise rejected! " + errorMessage;
+          
+          // Implement some fallback controls here...
+  
+        }); 
+      } else if (agent === "iOS") {
+        document.getElementById("device").innerHTML = "You are using an iOS device.";
+        if (window.DeviceOrientationEvent) {
+          // Listen for the deviceorientation event and handle the raw data
+          window.addEventListener('deviceorientation', function(eventData) {
+            var compassdir;
+
+            if(event.webkitCompassHeading) {
+              // Apple works only with this, alpha doesn't work
+              compassdir = event.webkitCompassHeading;
+              document.getElementById("heading").innerHTML = "Heading: " + compassdir;
+            }
+  
+          });
+        }
+      } else {
+        document.getElementById("device").innerHTML = "You are using a not supported device.";
       }
-
-      Compass.watch(function (heading) {
-        document.querySelector('.degrees').text(heading);
-        document.querySelector('.compass').css('transform', 'rotate(' + (-heading) + 'deg)');
-      });
     }
 
     function getMobileOperatingSystem() {
@@ -53,10 +97,8 @@
     window.onload = startNavigation;
     </script> 
     <h1>Testing heading!</h1>
-    <div id="status"></div>
-    <h2 class="compass"></h2>
-    <h3 class="degree"></h3>
-    <div class="go-outside-message"></div>
-    <div class="move-and-hold-ahead-message"></div>
+    <h2 id="heading" style="text-align:center"></h2>
+    <h3 id="device"></h3>
+    <h4 id="status"></h4>
 </body>
 </html>
