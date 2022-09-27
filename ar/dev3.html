@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image.prod.js"></script>
+  <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+  <title>30D Studio</title>
+</head>
+<body>
+  <script language="javascript">
+      
+      AFRAME.registerComponent('compass-pointer',{
+        scene: {},
+        init: function() {
+          const el = this.el;
+          this.scene = this.el.sceneEl;
+          pointer = document.querySelector('#pointer');
+          // window.el = pointer;
+          const angle = startNavigation();
+          console.log("el: " + el)
+          el.setAttribute("rotation", { z: 0 });
+          
+          console.log("el rotation: ", el.object3D.rotation);
+          console.log("rot 90 deg: ", Number.parseFloat(90 * Math.PI/2));
+        }
+      });
+
+      function getMobileOperatingSystem() {
+          var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+          if (/android/i.test(userAgent)) {
+              return "Android";
+          }
+
+          // iOS detection from: http://stackoverflow.com/a/9039885/177710
+          if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+              return "iOS";
+          }
+
+          return "unknown";
+      }
+
+      function startNavigation (el) {
+        const agent = getMobileOperatingSystem();
+
+        if (agent === "Android") {
+          // Obtain a new *world-oriented* Full Tilt JS DeviceOrientation Promise
+          var promise = FULLTILT.getDeviceOrientation({ 'type': 'world' });
+    
+          // Wait for Promise result
+          promise.then(function(deviceOrientation) { // Device Orientation Events are supported
+            // Register a callback to run every time a new 
+            // deviceorientation event is fired by the browser.
+            deviceOrientation.listen(function() {
+              // Get the current *screen-adjusted* device orientation angles
+              var currentOrientation = deviceOrientation.getScreenAdjustedEuler();
+    
+              // Calculate the current compass heading that the user is 'looking at' (in degrees)
+              var compassHeading = Number.parseFloat(360 - currentOrientation.alpha).toFixed(0);
+              
+              return compassHeading;
+              // Do something with `compassHeading` here...
+              // document.getElementById("heading").innerHTML = "Heading: " + Number.parseFloat(compassHeading).toFixed(0);
+    
+            });
+    
+          }).catch(function(errorMessage) { // Device Orientation Events are not supported
+            console.log(errorMessage);
+            document.getElementById("status").innerHTML = "Promise rejected! " + errorMessage;
+            
+            // Implement some fallback controls here...
+            return 0;
+    
+          }); 
+        } else if (agent === "iOS") {
+          if (window.DeviceOrientationEvent) {
+            // Listen for the deviceorientation event and handle the raw data
+            window.addEventListener('deviceorientation', function(eventData) {
+              var compassdir;
+
+              if(event.webkitCompassHeading) {
+                // Apple works only with this, alpha doesn't work
+                compassdir = event?.webkitCompassHeading || 0;
+                
+                return Number.parseFloat(compassdir).toFixed(0);
+              }
+    
+            });
+          } else return 0;
+        } else {
+          return 0;
+        }
+      }
+
+      // window.onload = startNavigation;
+    </script>
+  <a-scene mindar-image="imageTargetSrc: http://127.0.0.1:5500/assets/trinta.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
+      <a-assets>
+	      <!-- <img id="card" src="http://127.0.0.1:5500/assets/rosewind.png" crossorigin="anonymous"/> -->
+	      <!-- <a-asset-item id="compassModel" src="http://127.0.0.1:5500/assets/compass30d.gltf"></a-asset-item> -->
+	      <!-- <a-asset-item id="pointerModel" src="http://127.0.0.1:5500/assets/pointer30d.gltf"></a-asset-item> -->
+        <a-asset-item id="avatarModel" src="http://127.0.0.1:5500/assets/compass30d.gltf"></a-asset-item>
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-entity mindar-image-target="targetIndex: 0">
+        <!-- <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane> -->
+        <a-gltf-model rotation="90 0 0 " position="0 -1 0.1" scale="0.5 0.5 0.5" src="#avatarModel">
+      </a-entity>
+    </a-scene>
+</body>
+</html>
