@@ -16,12 +16,16 @@
       AFRAME.registerComponent('compass-pointer',{
         scene: {},
         init: function() {
-          console.log(this.el.sceneEl);
+          const el = this.el;
           this.scene = this.el.sceneEl;
           pointer = document.querySelector('#pointer');
           // window.el = pointer;
           const angle = startNavigation();
-          pointer.setAttribute("rotate", { z: angle });
+          console.log("el: " + el)
+          el.setAttribute("rotation", { z: 0 });
+          
+          console.log("el rotation: ", el.object3D.rotation);
+          console.log("rot 90 deg: ", Number.parseFloat(90 * Math.PI/2));
         }
       });
 
@@ -96,16 +100,16 @@
     </script>
   <a-scene mindar-image="imageTargetSrc: http://127.0.0.1:5500/assets/trinta.mind;" color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
       <a-assets>
-	      <img id="card" src="http://127.0.0.1:5500/assets/logo-30d.png" crossorigin="anonymous"/>
-	      <a-asset-item id="compassModel" src="http://127.0.0.1:5500/assets/compass30d.gltf"></a-asset-item>
-	      <a-asset-item id="pointerModel" src="http://127.0.0.1:5500/assets/pointer30d.gltf"></a-asset-item>
+	      <!-- <img id="card" src="http://127.0.0.1:5500/assets/rosewind.png" crossorigin="anonymous"/> -->
+	      <!-- <a-asset-item id="compassModel" src="http://127.0.0.1:5500/assets/compass30d.gltf"></a-asset-item> -->
+	      <!-- <a-asset-item id="pointerModel" src="http://127.0.0.1:5500/assets/pointer30d.gltf"></a-asset-item> -->
+        <a-asset-item id="avatarModel" src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.5/examples/image-tracking/assets/card-example/softmind/scene.gltf"></a-asset-item>
       </a-assets>
 
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-
       <a-entity mindar-image-target="targetIndex: 0">
-        <a-gltf-model rotation="90 0 0" position="0 -0.5 0.4" scale="0.4 0.4 0.4" src="#compassModel" animation-mixer></a-gltf-model>
-        <a-gltf-model rotation="90 0 0" position="0 -0.5 0.5" scale="0.4 0.4 0.4" src="#pointerModel" compass-pointer id="pointer"></a-gltf-model>
+        <!-- <a-plane src="#card" position="0 0 0" height="0.552" width="1" rotation="0 0 0"></a-plane> -->
+        <a-gltf-model rotation="0 0 0 " position="0 0 0.1" scale="0.005 0.005 0.005" src="#avatarModel" animation="property: position; to: 0 0.1 0.1; dur: 1000; easing: easeInOutQuad; loop: true; dir: alternate">
       </a-entity>
     </a-scene>
 </body>
